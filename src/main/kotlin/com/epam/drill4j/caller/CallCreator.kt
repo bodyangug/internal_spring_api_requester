@@ -25,7 +25,11 @@ class CallCreator(
     private val externalApiURL: String = Config.getProperty("api.external.url")
 ) {
 
-
+    /**
+     * Call method should make HTTP calls to external API.
+     *
+     * @param path Path to metadata, which will be using to call external API.
+     */
     suspend fun call(path: String) {
         val readString = withContext(Dispatchers.IO) {
             Files.readString(Path(path))
@@ -55,6 +59,13 @@ class CallCreator(
         stopAdminSession(sessionID)
     }
 
+    /**
+     * Call external api method should make request to defined external API.
+     *
+     * @param model Model of metadata info from file.
+     * @param sessionID Generated session id by UUID.
+     * @return hash from URL string.
+     */
     private fun callExternalApi(model: MetadataModel, sessionID: String): Int {
         val pathToApi = "$externalApiURL${model.url}?${getParams(model.numberOfParams)}"
         val drillTestId = model.url.hashCode()
@@ -73,6 +84,11 @@ class CallCreator(
         return drillTestId
     }
 
+    /**
+     * Stop admin session method should send HTTP call to admin to stop session.
+     *
+     * @param sessionID ID of session.
+     */
     private fun stopAdminSession(sessionID: String) {
         val jsonStopPayload = Gson().toJson(
             AdminPayload(
@@ -89,6 +105,12 @@ class CallCreator(
         )
     }
 
+    /**
+     * Add tests method should make call to add tests to Admin part.
+     *
+     * @param sessionID ID of session
+     * @param list List of TestInfo model
+     */
     private fun addTests(sessionID: String, list: ArrayList<TestInfo>) {
         val jsonAddTestsPayload = Gson().toJson(
             AdminPayload(
@@ -105,6 +127,11 @@ class CallCreator(
         )
     }
 
+    /**
+     * Start admin session method should send call to start session on admin part.
+     *
+     * @return generated session id
+     */
     private fun startAdminSession(): String {
         val sessionID = UUID.randomUUID().toString()
         val jsonStartPayload = Gson().toJson(
@@ -123,12 +150,23 @@ class CallCreator(
         return sessionID
     }
 
+    /**
+     * Make request method should make a call by receiving Request
+     *
+     * @param request model of HttpRequest
+     */
     private fun makeRequest(request: HttpRequest) {
         val client = HttpClient.newBuilder().build()
         val send = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
         println(send)
     }
 
+    /**
+     * Get headers should add headers by receiving map
+     *
+     * @param headers Map where key is name of header and value is Any type of object
+     * @return builder object
+     */
     private fun HttpRequest.Builder.getHeaders(headers: Map<String, Any>): HttpRequest.Builder = run {
         for (entry in headers.entries) {
             this.header(entry.key, "${entry.value}")
@@ -136,6 +174,12 @@ class CallCreator(
         this
     }
 
+    /**
+     * Get params method generates params to controller url
+     *
+     * @param number count of params to add
+     * @return string with params
+     */
     private fun getParams(number: Int): String {
         var result = ""
         for (i in 0..number) {
