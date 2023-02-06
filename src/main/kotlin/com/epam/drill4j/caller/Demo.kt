@@ -1,8 +1,10 @@
 package com.epam.drill4j.caller
 
-class Demo
+import kotlinx.coroutines.runBlocking
 
 fun main() {
     // NOTE: do not forgot to create folder files if it does not exist.
-    CallCreator().call("files/endpoints.json")
+    runBlocking {
+        CallCreator().call("files/endpoints.json")
+    }
 }
