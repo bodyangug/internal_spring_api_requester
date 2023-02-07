@@ -8,9 +8,9 @@ data class AdminPayload(
 data class Payload(
     var sessionId: String,
     var isGlobal: Boolean? = null,
-    var isRealTime: Boolean? = null,
+    var isRealtime: Boolean? = null,
     var testType: String? = null,
-    var testInfo: ArrayList<TestInfo>? = null
+    var tests: ArrayList<TestInfo>? = null
 )
 
 data class TestInfo(

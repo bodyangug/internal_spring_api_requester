@@ -7,8 +7,6 @@ import com.epam.drill4j.caller.model.TestDetails
 import com.epam.drill4j.caller.model.TestInfo
 import com.epam.drill4j.metadata.model.MetadataModel
 import com.google.gson.Gson
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -22,7 +20,8 @@ class CallCreator(
     private val apiEndpoint: String = Config.getProperty("api.endpoint"),
     private val token: String = Config.getProperty("api.authorization"),
     private val batchSize: Int = Config.getProperty("api.batch.size").toInt(),
-    private val externalApiURL: String = Config.getProperty("api.external.url")
+    private val externalApiURL: String = Config.getProperty("api.external.url"),
+    private val client: HttpClient = HttpClient.newBuilder().build()
 ) {
 
     /**
@@ -30,10 +29,9 @@ class CallCreator(
      *
      * @param path Path to metadata, which will be using to call external API.
      */
-    suspend fun call(path: String) {
-        val readString = withContext(Dispatchers.IO) {
-            Files.readString(Path(path))
-        }
+    fun call(path: String) {
+        val readString = Files.readString(Path(path))
+
         val models = Gson().fromJson(readString, Array<MetadataModel>::class.java)
         // call to admin to start session
         val sessionID = startAdminSession()
@@ -115,7 +113,7 @@ class CallCreator(
         val jsonAddTestsPayload = Gson().toJson(
             AdminPayload(
                 type = "ADD_TESTS",
-                Payload(sessionId = sessionID, testInfo = list)
+                Payload(sessionId = sessionID, tests = list)
             )
         )
         makeRequest(
@@ -137,7 +135,7 @@ class CallCreator(
         val jsonStartPayload = Gson().toJson(
             AdminPayload(
                 type = "START",
-                Payload(sessionId = sessionID, isGlobal = true, isRealTime = true, testType = "unit")
+                Payload(sessionId = sessionID, isGlobal = true, isRealtime = true, testType = "unit")
             )
         )
         makeRequest(
@@ -156,8 +154,7 @@ class CallCreator(
      * @param request model of HttpRequest
      */
     private fun makeRequest(request: HttpRequest) {
-        val client = HttpClient.newBuilder().build()
-        val send = client.sendAsync(request, HttpResponse.BodyHandlers.ofString())
+        val send = client.send(request, HttpResponse.BodyHandlers.ofString())
         println(send)
     }
 
